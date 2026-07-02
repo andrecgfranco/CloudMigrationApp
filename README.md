@@ -1,4 +1,4 @@
-# CN 2026 Project
+# Migration Assistant Project
 
 This is the source code repository for the project. 
 
