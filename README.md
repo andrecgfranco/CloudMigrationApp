@@ -1,36 +1,38 @@
-# Projeto CN 2026 Grupo 16 #
+# CN 2026 Project
 
-Este é o repositório de src code. Para verificar o repositório de scripts, consultar o link presente no relatório da fase 10.
+This is the source code repository for the project. 
 
-## Workflows ##
+This project implements the backend of a cloud-based (Google Cloud Platform) Migration Assistant App using Java and technologies such as SpringBoot, Docker, Kubernetes and PostgreSQL.
 
-Sempre que há uma mudança num dos serviços dos programa empurrada para o repositório, o GitActions corre os testes referentes ao mesmo serviço (se aplicável). Caso os testes passem, a nova imagem docker deste serviço é compilada e empurrada para o artifact registry. Caso algum teste falhe, a imagem antiga mantém-se.
+## Workflows
 
-## DataBase ##
+Whenever a change to one of the services is pushed to the repository, GitHub Actions runs the tests for that service (if applicable). If the tests pass, a new Docker image for the service is built and pushed to the Artifact Registry. If any test fails, the previous image is kept.
 
-Foi implementado uma database em Postgres. Para tal foi criado um container com a base de dados e um script de python para importar os dados dos datasets para a base de dados.
+## Database
 
-## Auth-Forum Service ##
+A PostgreSQL database was implemented. This includes a container running the database and a Python script to import dataset data into it.
 
-Serviço implementado pela Juliana. Cuida dos serviços de registro, login (apenas mock) e eliminação de contas. É também repsonsável pela gestão dos fóruns. Comunica por GRPC com User-service. Originalmente era o serviço com o secrets manager configurado, que entretanto teve de ser retirado por motivos vários. Detalhes da implementação disponíveis no relatório. Implementa log tracking através do Prometheus e o Grafana.
+## Auth-Forum Service
 
-## Location Service ##
+Handles user registration, login (mock authentication), and account deletion. Also manages forum functionality. Communicates via gRPC with the User Service. Implements request/log tracking through Prometheus and Grafana.
 
-Desenvolvido pelo André. Trata de todos os métodos relativos a informação sobre os países da base de dados e as respetivas métricas. Funciona como server GRPC para User-service retirar informação. Uma vez que os dados de localização são "estáticos" (não possui métdos POST, PUT, PATCH ou DELETE), este implementa um serviço de cache-aside.
+## Location Service
 
-## Search Service ##
+Handles all methods related to country information and associated metrics stored in the database. Acts as a gRPC server for the User Service to retrieve information. Since location data is largely static (no POST, PUT, PATCH, or DELETE methods), this service implements a cache-aside pattern.
 
-Semi Deprecado. Serve de server GRPC para um método de User service.
+## Search Service
 
-## User Service ##
+Serves as a gRPC server supporting a User Service method.
 
-Serviço desenvolvido pelo Pedro. Contém os métodos de pesquisa e customização de perfis de utilizadores. Funciona como servidor GRPC para auth-forum retirar informação sobre utilizadores, e utiliza o server do Location Service para retirar informações sobre localizações. Utiliza também o servidor de Search Service para retirar informações sobre métricas.
+## User Service
 
-## Pasta General Notes ##
+Contains the methods for searching and customizing user profiles. Acts as a gRPC server for the Auth-Forum service to retrieve user information, and consumes the Location Service's gRPC server for location data, as well as the Search Service for metrics.
 
-Contém uma lista de comandos uteis para manipular e explorar a aplicação
+## General Notes Folder
 
-## Notas ##
+Contains a list of useful commands for interacting with and exploring the application.
 
-Todas os serviços devem ter um ficheiro .env dentro das respetivas pastas, no formato de .env.example
-Ports definidos nos env devem ser os mesmo dos port definidos nos manifests/configmaps do repositório de scripts.
+## Notes
+
+Every service should include a `.env` file in its respective folder, following the `.env.example` format.
+Ports defined in the env files must match the ports defined in the manifests/configmaps in the scripts repository.
