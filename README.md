@@ -20,7 +20,7 @@ Handles user registration, login (mock authentication), and account deletion. Al
 
 Handles all methods related to country information and associated metrics stored in the database. Acts as a gRPC server for the User Service to retrieve information. Since location data is largely static (no POST, PUT, PATCH, or DELETE methods), this service implements a cache-aside pattern.
 
-## Search Service
+## Search Service - Deprecated
 
 Serves as a gRPC server supporting a User Service method.
 
