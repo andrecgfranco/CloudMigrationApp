@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package proto;
+
+option java_package = "userProto";
+option java_outer_classname = "LocationProto";
+option java_multiple_files = true;
+
+message Location {
+    int64 id = 1;
+    string name = 2;
+    string code = 3;
+}
+
+message GetLocationRequest {
+    int64 id = 1;
+}
+
+service LocationService {
+    rpc GetLocation (GetLocationRequest) returns (Location);
+}

@@ -1,0 +1,44 @@
+syntax = "proto3";
+
+package proto;
+
+option java_package = "userProto";
+option java_outer_classname = "MetricProto";
+option java_multiple_files = true;
+
+message Metric {
+    int64 id = 1;
+    string name = 2;
+    string label = 3;
+    string unit = 4;
+}
+
+message LocationMetric {
+    int64 id = 1;
+    string locationName = 2;
+    string metricName = 3;
+    double value = 4;
+}
+
+message GetLocationMetricRequest {
+    int64 locationId = 1;
+    int64 metricId = 2;
+}
+
+message GetMetricByIdRequest {
+    int64 id = 1;
+}
+
+message GetMetricByNameRequest {
+    string name = 1;
+}
+
+message GetLocationMetricsByMetricIdRequest {
+    int64 metricId = 1;
+}
+
+
+service MetricService {
+    rpc GetMetricByName (GetMetricByNameRequest) returns (Metric);
+    rpc getLocationMetricsOrderedByMetricId(GetLocationMetricsByMetricIdRequest) returns (stream LocationMetric);
+}

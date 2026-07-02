@@ -1,0 +1,37 @@
+syntax = "proto3";
+
+package proto;
+
+option java_package = "userProto";
+option java_outer_classname = "UserProto";
+option java_multiple_files = true;
+
+message RegisterUserRequest {
+    string userName = 1;
+    string email = 2;
+}
+
+message User {
+    int64 id = 1;
+    string userName = 2;
+    string email = 3;
+}
+
+message UserDeleteRequest {
+    int64 id = 1;
+}
+
+message UserDeleteResponse {
+    bool success = 1;
+}
+
+message GetUserByIdRequest {
+  int64 id = 1;
+}
+
+service UserService {
+    rpc CreateUser (RegisterUserRequest) returns (User);
+    rpc AuthenticateUser (RegisterUserRequest) returns (User);
+    rpc DeleteUser (UserDeleteRequest) returns (UserDeleteResponse);
+    rpc GetUserById(GetUserByIdRequest) returns (User);
+}

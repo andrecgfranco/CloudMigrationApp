@@ -1,0 +1,6 @@
+userService/.env
+target
+dataBaseService/.env
+locationService/.env
+searchService/.env
+Notes.md

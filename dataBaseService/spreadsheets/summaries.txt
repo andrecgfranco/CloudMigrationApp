@@ -1,0 +1,21 @@
+price_level_index - UE como baseline (=100), indice com base em "Actual individual consumption", inclui alguns paises fora da UE como Albania.
+
+housing_price_index - variação/crescimento média do valor imobiliario anual (positivo ou negativo)
+
+foreign_unemployment - percentagem de desemprego de estrangeiros (alguns paises com dados em falta)
+
+crime_homicide_rate - homicidios intencionais registados por 100k habitantes (escolhi homicidio mas podemos usar outras categorias)
+
+life_expectancy - esperança média de vida ao inicio da vida
+
+hours_worked_weekly - média de horas trabalhadas semanalmente (entre os 15 e 64 anos)
+
+air_quality_by_city - qualidade do ar por cidade, dataset original com muita informação detalhada
+
+air_quality_country_avg - qualidade de ar media por pais, feito com base nas cidades, dataset simplificado
+
+public_transport - percentagem de tranporte terrestre por transportes publicos (Trains, motor coaches, buses and trolley buses)
+
+physicians_region - medicos por regiao por 100k habitantes
+
+physicians_country - medicos por pais por 100k habitantes

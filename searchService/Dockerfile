@@ -1,0 +1,28 @@
+# ─── Stage 1: Build ───────────────────────────────────────────────────────────
+FROM maven:3.9.6-eclipse-temurin-21 AS builder
+
+WORKDIR /app
+
+# Cache dependencies first (better layer caching)
+COPY pom.xml .
+RUN mvn dependency:go-offline -q
+
+# Build the app
+COPY src ./src
+RUN mvn package -DskipTests -q
+
+# ─── Stage 2: Runtime ─────────────────────────────────────────────────────────
+FROM eclipse-temurin:21-jre-alpine
+
+WORKDIR /app
+
+# Create a non-root user for security
+RUN addgroup -S appgroup && adduser -S appuser -G appgroup
+
+COPY --from=builder /app/target/*.jar app.jar
+
+RUN chown appuser:appgroup app.jar
+USER appuser
+
+ENTRYPOINT ["java", "-jar", "app.jar"]
+#update

@@ -1,0 +1,230 @@
+openapi: 3.0.4
+info:
+  title: "Migration Service: User API"
+  version: '1.0.0'
+  description: >-
+    Comparator of metrics for different European countries. Use cases assigned
+    to Pedro Lopes 58196.
+    We advise to test it after testing both Auth-Forum and Location
+   
+servers:
+  - url: <linkIsInMoodle>/api/v1
+    description: Cloud Server
+paths:
+  /users:
+    get:
+      summary: Returns a list of all users. Can be queried for a specific name
+      operationId: getAllUsers
+      parameters:
+        - in: query
+          name: name
+          description: Name being searched
+          required: false
+          schema:
+            type: string
+            example: matt
+      responses:
+        '200':
+          description: A JSON array of userInfo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '404':
+          description: No users with queried name
+
+  /users/byUserName/{username}:
+    get:
+      summary:
+        Returns a user information.
+      operationId: getUserByUserName
+      parameters:
+        - name: username
+          in: path
+          description: UserName
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object with user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: No users found with requested username
+
+  /users/byId/{userid}:
+    get:
+      summary:
+        Returns a user information.
+      operationId: getUserByUserID
+      parameters:
+        - name: userid
+          in: path
+          description: UserId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Object with user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: No users found with requested userid
+
+  /users/update:
+    put:
+      summary: Updates a user's information, including preferred metrics, but not including favorite locations
+      operationId: updateUser
+      requestBody:
+        description: Alterations to be made
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAlterationRequest'
+      responses:
+        '200':
+          description: Object with user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Error in the request. If one changed the username, it may be occupied. It can also be due to invalid metric, etc. Putting the (prefered) metric value to 0 removes it from the prefered metrics, so that is not an error.
+        '404':
+          description: No users found with requested userid
+
+  /users/addFavoriteLocation:
+    put:
+      summary: Adds a location to a user's favorite location
+      operationId: addUserFavLocations
+      requestBody:
+        description: Alterations to be made
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserID:
+                  type: integer
+                LocationID:
+                  type: integer
+              example:
+                UserID: 1
+                LocationID: 2
+      responses:
+        '200':
+          description: Object with user information
+        '404':
+          description: User or location not found
+
+  /users/removeFavoriteLocation:
+    put:
+      summary: removes a location from a user's favorite location
+      operationId: removeUserFavLocations
+      requestBody:
+        description: Alterations to be made
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserID:
+                  type: integer
+                LocationID:
+                  type: integer
+              example:
+                UserID: 1
+                LocationID: 2
+      responses:
+        '200':
+          description: Object with user information
+        '404':
+          description: User or location not found
+
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        UserID:
+          type: integer
+        UserName:
+          type: string
+        Name:
+          type: string
+        Email:
+          type: string
+        CountryID:
+          type: integer
+        CountryName:
+          type: string
+        FavoriteLocations:
+          type: array
+          items:
+            type: object
+            properties:
+              LocationID:
+                type: integer
+              LocationName:
+                type: string
+        PreferedMetrics:
+          type: array
+          items:
+            type: object
+            properties:
+              MetricID:
+                type: integer
+              MetricName:
+                type: string
+              MetricValue:
+                type: integer #From 0 to 10
+            
+
+    UserAlterationRequest:
+      type: object
+      properties:
+        UserID:
+          type: integer
+          example: 1
+        UserName:
+          type: string
+          example: matt
+        Name:
+          type: string
+          example: Matthew
+        Email:
+          type: string
+          example: matthew@example.com
+        CountryID:
+          type: integer
+          example: 1
+        PreferedMetrics:
+          type: array
+          items:
+            type: object
+            properties:
+              MetricName:
+                type: string
+                example: crime
+              MetricValue:
+                type: integer #From 0 to 10
+                example: 7
+
+
+      required: 
+        - UserID
+
+
+

@@ -1,0 +1,200 @@
+openapi: 3.0.4
+info:
+  title: Assistente de Imigração
+  version: '1.0.0'
+  description: >-
+    Comparador de métricas de diferentes cidades europeias. Casos de Uso atribuidos a Simão Quintas 58190
+   
+servers:
+  - url: http://localhost:8080/api/v1
+    description: Local testing server
+
+paths:
+  /locations/search:
+    get:
+      summary: Procura países/cidades com base em filtros
+      operationId: filteredSearchLocations
+      parameters:
+        - name: dataset
+          in: query
+          required: true
+          schema:
+            $ref: '#/components/schemas/DatasetEnum'
+        - name: min_value
+          in: query
+          description: Valor mínimo do filtro
+          schema:
+            type: number
+        - name: max_value
+          in: query
+          description: Valor máximo do filtro
+          schema:
+            type: number
+      responses:
+        '200':
+          description: Lista de localizações filtradas
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/LocationSummary'
+        '400':
+          description: Parâmetros de pesquisa inválidos
+
+  /locations/trends:
+    get:
+      summary: Descobre as localidades cuja métrica tem maior tendência de aumento ou diminuição
+      operationId: getLocationTrends
+      parameters:
+        - name: dataset
+          in: query
+          required: true
+          description: Métrica a analisar
+          schema:
+            $ref: '#/components/schemas/DatasetEnum'
+        - name: years
+          in: query
+          required: true
+          description: Período de anos a analisar
+          schema:
+            type: integer
+            example: 5
+        - name: is_increase
+          in: query
+          required: true
+          description: Se true, procura as localidades onde a métrica aumentou se false, onde mais diminuiu.
+          schema:
+            type: boolean
+        - name: top
+          in: query
+          description: Limita os resultados a um número específico
+          schema:
+            type: integer
+            example: 10
+      responses:
+        '200':
+          description: Lista ordenada do top de localidades com base na variação da métrica
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/TrendResult'
+        '400':
+          description: Parâmetros de pesquisa inválidos
+
+  /locations/{location_id}/history:
+    get:
+      summary: Evolução histórica dos países/cidades
+      operationId: compareLocationsHistory
+      parameters:
+        - name: location_id
+          in: path
+          required: true
+          schema:
+            type: integer
+        - name: dataset
+          in: query
+          required: true
+          schema:
+            type: array
+            items:
+              $ref: '#/components/schemas/DatasetEnum'
+        - name: start_year
+          in: query
+          schema:
+            type: integer
+            example: 2015
+        - name: end_year
+          in: query
+          schema:
+            type: integer
+            example: 2023
+      responses:
+        '200':
+          description: Dados históricos do país/cidade
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Indicator'
+        '400':
+          description: Intervalo de anos inválido
+        '404':
+          description: Localização não encontrada
+
+components:
+  schemas:
+
+    LocationSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Portugal"
+        type:
+          type: string
+          enum: [country, city]
+        country_code:
+          type: string
+          example: "PT"
+
+    TrendResult:
+      type: object
+      properties:
+        location:
+          $ref: '#/components/schemas/LocationSummary'
+        dataset:
+          $ref: '#/components/schemas/DatasetEnum'
+        variation:
+          type: number
+          description: Variação calculada para a métrica durante o período especificado
+          example: 15.4
+        percentage_change:
+          type: number
+          description: Variação em percentagem relativa ao valor inicial
+          example: 12.5
+        start_year:
+          type: integer
+          description: Ano inicial
+          example: 2018
+        end_year:
+          type: integer
+          description: Ano final
+          example: 2023
+
+    Indicator:
+      type: object
+      properties:
+        location_id:
+          type: integer
+          example: 1
+        dataset:
+          $ref: '#/components/schemas/DatasetEnum'
+        value:
+          type: number
+          example: 25.1
+        unit:
+          type: string
+          example: "per 100k inhabitants"
+        year:
+          type: integer
+          example: 2023
+
+    DatasetEnum:
+      type: string
+      enum:
+        - pli
+        - hpi
+        - crime
+        - air_quality
+        - transport
+        - health
+        - unemployment
+        - working_hours
+        - life_expectancy

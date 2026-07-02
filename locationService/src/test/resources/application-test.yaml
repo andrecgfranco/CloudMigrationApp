@@ -1,0 +1,17 @@
+spring:
+  datasource:
+    url: placeholder
+    username: placeholder
+    password: placeholder
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    show-sql: false
+  data:
+    redis:
+      host: localhost
+      port: 6379
+
+grpc:
+  server:
+    port: 0

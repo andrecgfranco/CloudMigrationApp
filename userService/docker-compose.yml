@@ -1,0 +1,31 @@
+version: "3.9"
+
+services:
+
+  # ── Spring Boot API ──────────────────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: userService
+    restart: unless-stopped
+    environment:
+      SERVER_PORT: ${USER_SERVER_PORT:-8081}
+      GRPC_PORT: ${USER_GRPC_PORT:-50053}
+      LOCATION_GRPC_PORT: ${LOCATION_GRPC_PORT:-50051}
+      SEARCH_GRPC_PORT: ${SEARCH_GRPC_PORT:-50052}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://${POSTGRES_HOST:-pg_database}:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-myDB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-user}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${DDL_AUTO:-update}
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILE:-dev}
+    ports:
+      - "${USER_SERVER_PORT:-8081}:${USER_SERVER_PORT:-8081}"
+      - "${USER_GRPC_PORT:-50053}:${USER_GRPC_PORT:-50053}"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge

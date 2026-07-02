@@ -1,0 +1,23 @@
+version: "3.9"
+
+services:
+  locations-service:
+    container_name: location_service
+    build: .
+    env_file: .env
+    environment:
+      SERVER_PORT: ${LOCATION_SERVER_PORT:-8080}
+      GRPC_PORT: ${LOCATION_GRPC_PORT:-50051}
+      SPRING_DATASOURCE_URL: jdbc:postgresql://pg_database:5432/${POSTGRES_DB}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "${LOCATION_SERVER_PORT:-8080}:${LOCATION_SERVER_PORT:-8080}"
+      - "${LOCATION_GRPC_PORT:-50051}:${LOCATION_GRPC_PORT:-50051}"
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    name: app-network
+    driver: bridge

@@ -1,0 +1,246 @@
+openapi: 3.0.4
+info:
+  title: "Migration Assistant: Authentication and Forum Service"
+  version: '1.0.0'
+  description: >-
+    Authentication and Forum Service for the European Migration Assistant.
+    Use cases assigned to Juliana Duarte 60807:
+    Register User, Login User, Delete Account and Forums in general.
+    Recommended to test this Service First, in this document order, as other services depend on valid user IDs.
+
+servers:
+  - url: <linkIsInMoodle>/api/v1
+    description: Cloud server
+
+paths:
+  /auth/register:
+    post:
+      summary: Registers a new user
+      operationId: registerUser
+      requestBody:
+        description: Data required to create a new user account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegisterResponse'
+        '400':
+          description: Invalid request body
+        '409':
+          description: Username or email already exists
+
+  /auth/login:
+    post:
+      summary: Authenticates a user (just returns a json in case the user exists)
+      operationId: loginUser
+      requestBody:
+        description: User credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid request body
+        '401':
+          description: Invalid username/email or password
+
+  /delete/{userId}:
+    delete:
+      summary: Deletes a user account
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          description: Unique user identifier
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User account successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserResponse'
+        '401':
+          description: Unauthorized operation
+        '404':
+          description: No user found with requested userId
+
+  /forum/posts:
+    post:
+      summary: Creates a new forum post
+      operationId: createForumPost
+      requestBody:
+        description: Forum post data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateForumPostRequest'
+      responses:
+        '201':
+          description: Forum post successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumPost'
+        '400':
+          description: Invalid request body
+        '401':
+          description: Unauthorized user
+
+    get:
+      summary: Returns a list of forum posts (enpoint like /forum/posts?userId={userId})
+      operationId: getAllForumPosts
+      parameters:
+        - in: query
+          name: userId
+          description: Filter posts by author
+          required: false
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: A JSON array of forum posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ForumPost'
+        '404':
+          description: No forum posts found
+
+
+  /forum/posts/{postId}:
+    get:
+      summary: Returns the details of a specific forum post
+      operationId: getForumPostById
+      parameters:
+        - name: postId
+          in: path
+          description: Unique forum post identifier
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Object with forum post information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumPost'
+        '404':
+          description: No forum post found with requested postId
+
+components:
+  schemas:
+    UserRegisterResponse:
+      type: object
+      properties:
+        UserID:
+          type: integer
+        UserName:
+          type: string
+        Email:
+          type: string
+      required:
+        - UserID
+        - UserName
+        - Email
+
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+      required:
+        - username
+        - email
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+      required:
+        - username
+        - email
+
+    LoginResponse:
+      type: object
+      properties:
+        User:
+          $ref: '#/components/schemas/UserRegisterResponse'
+      required:
+        - User
+
+    DeleteUserResponse:
+      type: object
+      properties:
+        Message:
+          type: string
+        UserID:
+          type: integer
+      required:
+        - Message
+        - UserID
+
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        authorID:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - authorID
+        - title
+        - content
+        - createdAt
+
+    CreateForumPostRequest:
+      type: object
+      properties:
+        authorID:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+      required:
+        - authorID
+        - title
+        - content

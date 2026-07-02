@@ -1,0 +1,782 @@
+openapi: 3.0.4
+info:
+  title: "Migration Assistant: Authentication and Forum Service"
+  version: '1.0.0'
+  description: >-
+    European Migration Assistant.
+    Recomended order of testing: auth -> forum -> locations -> users
+servers:
+  - url: <linkIsInMoodle>/api/v1
+    description: Cloud server
+
+paths:
+  /auth/register:
+    post:
+      summary: Registers a new user
+      operationId: registerUser
+      requestBody:
+        description: Data required to create a new user account
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterRequest'
+      responses:
+        '201':
+          description: User successfully registered
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserRegisterResponse'
+        '400':
+          description: Invalid request body
+        '409':
+          description: Username or email already exists
+
+  /auth/login:
+    post:
+      summary: Authenticates a user (just returns a json in case the user exists)
+      operationId: loginUser
+      requestBody:
+        description: User credentials
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Successful authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Invalid request body
+        '401':
+          description: Invalid username/email or password
+
+  /delete/{userId}:
+    delete:
+      summary: Deletes a user account
+      operationId: deleteUser
+      parameters:
+        - name: userId
+          in: path
+          description: Unique user identifier
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: User account successfully deleted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/DeleteUserResponse'
+        '401':
+          description: Unauthorized operation
+        '404':
+          description: No user found with requested userId
+
+  /forum/posts:
+    post:
+      summary: Creates a new forum post
+      operationId: createForumPost
+      requestBody:
+        description: Forum post data
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateForumPostRequest'
+      responses:
+        '201':
+          description: Forum post successfully created
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumPost'
+        '400':
+          description: Invalid request body
+        '401':
+          description: Unauthorized user
+
+    get:
+      summary: Returns a list of forum posts (enpoint like /forum/posts?userId={userId})
+      operationId: getAllForumPosts
+      parameters:
+        - in: query
+          name: userId
+          description: Filter posts by author
+          required: false
+          schema:
+            type: integer
+            example: 1
+      responses:
+        '200':
+          description: A JSON array of forum posts
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ForumPost'
+        '404':
+          description: No forum posts found
+
+
+  /forum/posts/{postId}:
+    get:
+      summary: Returns the details of a specific forum post
+      operationId: getForumPostById
+      parameters:
+        - name: postId
+          in: path
+          description: Unique forum post identifier
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Object with forum post information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ForumPost'
+        '404':
+          description: No forum post found with requested postId
+
+  /locations:
+    get:
+      summary: List available locations
+      description: >
+        Returns the list of European locations available on the platform.
+        Supports the use case "View List of Countries".
+      operationId: listLocations
+      responses:
+        "200":
+          description: List of locations returned successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/LocationSummary"
+
+  /locations/{id}:
+    get:
+      summary: Get location data
+      description: >
+        Returns the general data and metrics of a specific location
+        identified by its internal ID.
+        Supports the use case "View data of a country".
+      operationId: getLocation
+      parameters:
+        - name: id
+          in: path
+          required: true
+          description: Internal location identifier.
+          schema:
+            type: integer
+            example: 1
+        - name: year
+          in: query
+          required: false
+          description: Filter metrics by year. If omitted, returns the most recent year.
+          schema:
+            type: integer
+            example: 2023
+      responses:
+        "200":
+          description: Location returned successfully.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/LocationSummary"
+                  - type: object
+                    properties:
+                      metrics:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Metric"
+        "404":
+          description: Location not found.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Location not found"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Internal server error"
+
+
+  /locations/code/{code}:
+    get:
+      summary: Get location by country code
+      description: >
+        Returns the general data and metrics of a location
+        identified by its ISO 3166-1 alpha-2 country code.
+      operationId: getLocationByCode
+      parameters:
+        - name: code
+          in: path
+          required: true
+          description: ISO 3166-1 alpha-2 country code (e.g. PT, DE, FR).
+          schema:
+            type: string
+            minLength: 2
+            maxLength: 2
+            example: "PT"
+        - name: year
+          in: query
+          required: false
+          description: Filter metrics by year. If omitted, returns the most recent year.
+          schema:
+            type: integer
+            example: 2023
+      responses:
+        "200":
+          description: Location returned successfully.
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/LocationSummary"
+                  - type: object
+                    properties:
+                      metrics:
+                        type: array
+                        items:
+                          $ref: "#/components/schemas/Metric"
+        "400":
+          description: Invalid parameters.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Invalid ISO code"
+        "404":
+          description: Location not found.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Location not found"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Internal server error"
+
+  /locations/compare:
+    get:
+      summary: Compare locations
+      description: >
+        Returns the metrics of multiple locations side by side.
+        If the metrics parameter is omitted, all available metrics are compared.
+        Supports the use case "Comparison between two countries".
+      operationId: compareLocations
+      parameters:
+        - name: ids
+          in: query
+          required: true
+          description: Location identifiers to compare (minimum 2, comma-separated).
+          schema:
+            type: array
+            items:
+              type: integer
+            minItems: 2
+          style: form
+          explode: false
+          example: [1, 2]
+        - name: metrics
+          in: query
+          required: false
+          description: Filter by specific metrics. If omitted, returns all.
+          schema:
+            type: array
+            items:
+              type: string
+              enum:
+                - pli
+                - hpi
+                - crime
+                - air_quality
+                - transport
+                - health
+                - unemployment
+                - working_hours
+                - life_expectancy
+          style: form
+          explode: false
+          example: [pli, hpi, crime]
+      responses:
+        "200":
+          description: Comparison returned successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  allOf:
+                    - $ref: "#/components/schemas/LocationSummary"
+                    - type: object
+                      properties:
+                        metrics:
+                          type: array
+                          items:
+                            $ref: "#/components/schemas/Metric"
+        "400":
+          description: Invalid or missing parameters.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "At least 2 location ids are required"
+        "404":
+          description: One or more locations not found.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "One or more locations not found"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Internal server error"
+
+  /locations/top:
+    get:
+      summary: Top locations by metric
+      description: >
+        Returns a list of locations sorted by a specific metric,
+        in ascending or descending order.
+        Supports the use case "Top by metric".
+      operationId: getTopLocations
+      parameters:
+        - name: metric
+          in: query
+          required: true
+          description: Metric to use for sorting.
+          schema:
+            type: string
+            enum:
+              - pli
+              - hpi
+              - crime
+              - air_quality
+              - transport
+              - health
+              - unemployment
+              - working_hours
+              - life_expectancy
+        - name: order
+          in: query
+          required: false
+          description: Sort direction.
+          schema:
+            type: string
+            enum: [asc, desc]
+            default: asc
+        - name: limit
+          in: query
+          required: false
+          description: Number of results to return.
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 15
+            default: 5
+      responses:
+        "200":
+          description: Sorted list returned successfully.
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    rank:
+                      type: integer
+                      example: 1
+                    name:
+                      type: string
+                      example: "Portugal"
+                    value:
+                      type: number
+                      example: 67.0
+        "400":
+          description: Invalid or missing parameters.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Invalid or missing metric"
+        "500":
+          description: Internal server error.
+          content:
+            application/json:
+              schema:
+                type: string
+                example: "Internal server error"
+
+  /users:
+    get:
+      summary: Returns a list of all users. Can be queried for a specific name
+      operationId: getAllUsers
+      parameters:
+        - in: query
+          name: name
+          description: Name being searched
+          required: false
+          schema:
+            type: string
+            example: matt
+      responses:
+        '200':
+          description: A JSON array of userInfo
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '404':
+          description: No users with queried name
+
+  /users/byUserName/{username}:
+    get:
+      summary:
+        Returns a user information.
+      operationId: getUserByUserName
+      parameters:
+        - name: username
+          in: path
+          description: UserName
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Object with user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: No users found with requested username
+
+  /users/byId/{userid}:
+    get:
+      summary:
+        Returns a user information.
+      operationId: getUserByUserID
+      parameters:
+        - name: userid
+          in: path
+          description: UserId
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Object with user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '404':
+          description: No users found with requested userid
+
+  /users/update:
+    put:
+      summary: Updates a user's information, including preferred metrics, but not including favorite locations
+      operationId: updateUser
+      requestBody:
+        description: Alterations to be made
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserAlterationRequest'
+      responses:
+        '200':
+          description: Object with user information
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Error in the request. If one changed the username, it may be occupied. It can also be due to invalid metric, etc. Putting the (prefered) metric value to 0 removes it from the prefered metrics, so that is not an error.
+        '404':
+          description: No users found with requested userid
+
+  /users/addFavoriteLocation:
+    put:
+      summary: Adds a location to a user's favorite location
+      operationId: addUserFavLocations
+      requestBody:
+        description: Alterations to be made
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserId:
+                  type: integer
+                LocationID:
+                  type: integer
+              example:
+                UserId: 1
+                LocationID: 2
+      responses:
+        '200':
+          description: Object with user information
+        '404':
+          description: User or location not found
+
+  /users/removeFavoriteLocation:
+    put:
+      summary: removes a location from a user's favorite location
+      operationId: removeUserFavLocations
+      requestBody:
+        description: Alterations to be made
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                UserId:
+                  type: integer
+                LocationID:
+                  type: integer
+              example:
+                UserId: 1
+                LocationID: 2
+      responses:
+        '200':
+          description: Object with user information
+        '404':
+          description: User or location not found
+
+components:
+  schemas:
+    UserRegisterResponse:
+      type: object
+      properties:
+        UserId:
+          type: integer
+        UserName:
+          type: string
+        Email:
+          type: string
+      required:
+        - UserId
+        - UserName
+        - Email
+
+    RegisterRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+      required:
+        - username
+        - email
+
+    LoginRequest:
+      type: object
+      properties:
+        username:
+          type: string
+        email:
+          type: string
+      required:
+        - username
+        - email
+
+    LoginResponse:
+      type: object
+      properties:
+        User:
+          $ref: '#/components/schemas/UserRegisterResponse'
+      required:
+        - User
+
+    DeleteUserResponse:
+      type: object
+      properties:
+        Message:
+          type: string
+        UserId:
+          type: integer
+      required:
+        - Message
+        - UserId
+
+    ForumPost:
+      type: object
+      properties:
+        id:
+          type: integer
+        authorID:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+        createdAt:
+          type: string
+          format: date-time
+        updatedAt:
+          type: string
+          format: date-time
+      required:
+        - id
+        - authorID
+        - title
+        - content
+        - createdAt
+
+    CreateForumPostRequest:
+      type: object
+      properties:
+        authorID:
+          type: integer
+        title:
+          type: string
+        content:
+          type: string
+      required:
+        - authorID
+        - title
+        - content
+
+    LocationSummary:
+      type: object
+      properties:
+        id:
+          type: integer
+          example: 1
+        name:
+          type: string
+          example: "Portugal"
+        country_code:
+          type: string
+          example: "PT"
+
+    Metric:
+      type: object
+      properties:
+        name:
+          type: string
+          enum:
+            - pli
+            - hpi
+            - crime
+            - air_quality
+            - transport
+            - health
+            - unemployment
+            - working_hours
+            - life_expectancy
+          example: "crime"
+        label:
+          type: string
+          example: "Crime Rate"
+        value:
+          type: number
+          example: 25.1
+        unit:
+          type: string
+          example: "per 100k inhabitants"
+        year:
+          type: integer
+          example: 2023
+
+    User:
+      type: object
+      properties:
+        UserId:
+          type: integer
+        UserName:
+          type: string
+        Name:
+          type: string
+        Email:
+          type: string
+        CountryID:
+          type: integer
+        CountryName:
+          type: string
+        FavoriteLocations:
+          type: array
+          items:
+            type: object
+            properties:
+              LocationID:
+                type: integer
+              LocationName:
+                type: string
+        PreferedMetrics:
+          type: array
+          items:
+            type: object
+            properties:
+              MetricID:
+                type: integer
+              MetricName:
+                type: string
+              MetricValue:
+                type: integer #From 0 to 10
+            
+
+    UserAlterationRequest:
+      type: object
+      properties:
+        UserId:
+          type: integer
+          example: 1
+        UserName:
+          type: string
+          example: matt
+        Name:
+          type: string
+          example: Matthew
+        Email:
+          type: string
+          example: matthew@example.com
+        CountryID:
+          type: integer
+          example: 1
+        PreferedMetrics:
+          type: array
+          items:
+            type: object
+            properties:
+              MetricName:
+                type: string
+                example: crime
+              MetricValue:
+                type: integer #From 0 to 10
+                example: 7
+
+      required: 
+        - UserId
