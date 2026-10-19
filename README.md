@@ -1,5 +1,9 @@
 # Migration Assistant Project
 
+Deciding where to emigrate is hard. Cost of living, safety, healthcare, air quality and job prospects vary widely from country to country, and the information is scattered across many sources. The **Migration Assistant** brings it together in one place: it lets people explore, compare and rank European countries using official statistics (mostly from Eurostat and the European Environment Agency), so they can make an informed choice about their next destination. Users can also build a profile with their own priorities and share their experiences in a forum.
+
+The project was developed for the Cloud Computing course of the MSc in Software Engineering at FCUL (University of Lisbon), by a group of four students, each responsible for one microservice. It is built as a cloud-native application, using professional practices such as microservices, gRPC communication, Kubernetes deployment, caching, monitoring and CI/CD.
+
 This is the source code repository for the project. 
 
 This project implements the backend of a cloud-based (Google Cloud Platform) Migration Assistant App using Java and technologies such as SpringBoot, Docker, Kubernetes and PostgreSQL.
